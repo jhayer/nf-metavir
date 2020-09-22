@@ -2,21 +2,16 @@
 nextflow.enable.dsl=2
 
 start_var = Channel.from("""
-*********Start running Metavir pipeline*********
+********* Start running Metavir pipeline *********
 nf-metavir is a workflow for metagenomics qc, assembly and taxonomic classification
 **************************************
 """)
 start_var.view()
 
-if( !nextflow.version.matches('20.+') ) {
-    ch_ver=Channel.from("This workflow requires Nextflow version 20.07 or greater -- You are running version $nextflow.version").view()
-    exit 1
-}
-
 // Help Message
 def helpMSG() {
     log.info """
-    *********Assembly and taxonomic classification workflow for (viral) metagenomics*********
+    ********* Assembly and taxonomic classification workflow for (viral) metagenomics *********
 
         Usage example:
     nextflow run main.nf --illumina illumina/ --assembler megahit -profile planet
@@ -50,4 +45,38 @@ def helpMSG() {
     -profile                    change the profile of nextflow both the engine and executor more details on github README
     -resume                     resume the workflow where it stopped
     """
+}
+
+if( !nextflow.version.matches('20.+') ) {
+    ch_ver=Channel.from("This workflow requires Nextflow version 20.07 or greater -- You are running version $nextflow.version").view()
+    exit 1
+}
+
+workflow {
+
+    // error handling
+    if (
+        workflow.profile.contains('planet') ||
+        workflow.profile.contains('uppmax')
+    ) { "executer selected" }
+    else { exit 1, "No executer selected: -profile uppmax or -profile planet"}
+
+    // module for full
+    if (params.modular=="full") {
+        include {fastp} from './modules/fastp' params(output: params.output)
+    }
+
+
+    //*************************************************
+    // STEP 1 QC with fastp
+    //*************************************************
+
+    // DATA INPUT ILLUMINA
+    illumina_input_ch = Channel
+        .fromFilePairs( "${params.illumina}/*_R{1,2}.fastq{,.gz}", checkIfExists: true)
+        .view()
+
+    // run fastp module
+    fastp(illumina_input_ch)
+    illumina_input_ch = fastp.out
 }
