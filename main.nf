@@ -8,6 +8,8 @@ nf-metavir is a workflow for metagenomics qc, assembly and taxonomic classificat
 """)
 start_var.view()
 
+if (params.help) { exit 0, helpMSG() }
+
 // Help Message
 def helpMSG() {
     log.info """
@@ -73,7 +75,7 @@ workflow {
 
     // DATA INPUT ILLUMINA
     illumina_input_ch = Channel
-        .fromFilePairs( "${params.illumina}/*_R{1,2}.fastq{,.gz}", checkIfExists: true)
+        .fromFilePairs( "${params.illumina}/*_R{1,2}_001.fastq{,.gz}", checkIfExists: true)
         .view()
 
     // run fastp module

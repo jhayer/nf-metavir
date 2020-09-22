@@ -1,12 +1,15 @@
 process fastp {
     label 'fastp'
-    publishDir "${params.output}/${name}/qc", mode: 'copy', pattern: "*_R*_clean.fastq"
+    publishDir "${params.output}/${id}/qc", mode: 'copy'
     input:
-        tuple val(name), path(illumina)
+        tuple val(id), path(illumina)
     output:
-        tuple val(name), path("*_R?_clean.fastq")
+        tuple val(id), path("*_R?_clean.fastq")
+        path("${id}_fastp_report.html")
     script:
         """
-        fastp -i ${illumina[0]} -I ${illumina[1]} -o ${name}_R1_clean.fastq -O ${name}_R2_clean.fastq
+        fastp -i ${illumina[0]} -I ${illumina[1]} \
+            -o ${id}_R1_clean.fastq -O ${id}_R2_clean.fastq \
+            --detect_adapter_for_pe --html ${id}_fastp_report.html
         """
 }
