@@ -63,10 +63,14 @@ workflow {
     ) { "executer selected" }
     else { exit 1, "No executer selected: -profile uppmax or -profile planet"}
 
-    // module for full
-    if (params.modular=="full") {
-        include {fastp} from './modules/fastp' params(output: params.output)
+
+    include {fastp} from './modules/fastp' params(output: params.output)
+
+    if (params.skip_host_map==false) {
+        // do the host mapping
+        include {bowtie2} from './modules/bowtie2' params(output: params.output)
     }
+
 
 
     //*************************************************
@@ -80,5 +84,23 @@ workflow {
 
     // run fastp module
     fastp(illumina_input_ch)
-    illumina_input_ch = fastp.out
+    illumina_clean_ch = fastp.out
+
+    if (params.skip_host_map==false){
+            if(params.host_ref) {
+                fasta = file(params.host_ref)
+                if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.host_ref}"
+            }
+            else {
+                exit 1, "No reference genome specified! A fasta file is required"
+            }
+
+            // The reference genome file
+            genome_file = file(params.host_ref)
+
+            bowtie2(illumina_clean_ch).join(genome_file)
+            illumina_host_unmapped_ch = bowtie2.out
+    }
+
+
 }
