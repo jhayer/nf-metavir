@@ -83,8 +83,8 @@ workflow {
         .view()
 
     // run fastp module
-    fastp(illumina_input_ch)
-    illumina_clean_ch = fastp.out
+//    fastp(illumina_input_ch)
+//    illumina_clean_ch = fastp.out
 
     //*************************************************
     // STEP 2 - Optional - Host mapping
@@ -99,11 +99,30 @@ workflow {
             }
 
             // The reference genome file
-            //genome_file = file(params.host_ref)
-            prep_bt2_index(params.host_ref)
-            bowtie2(illumina_clean_ch)
-            illumina_host_unmapped_ch = bowtie2.out
+           // genome_file = file(params.host_ref)
+           // genome_file = Channel.fromPath(params.host_ref)
+            Channel.fromPath(params.host_ref, checkIfExists: true)
+                    .ifEmpty { exit 1, "Cannot find host genome matching ${params.host_ref}!\n" }
+                    .set {genome}
+            //genome_file.view()
+            bt2_index(genome)
+          //  bowtie2(illumina_clean_ch)
+          //  illumina_host_unmapped_ch = bowtie2.out
     }
 
-
 }
+
+process bt2_index {
+    tag "$genome_fasta"
+    publishDir "${params.output}/host_genome_idx", mode: 'copy'
+    input:
+        path(genome_fasta)
+    output:
+        path ('*.bt2')
+    script:
+        """
+        bowtie2-build $genome_fasta ${genome_fasta.baseName}
+        """
+}
+
+

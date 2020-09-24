@@ -1,13 +1,16 @@
+#!/usr/bin/env nextflow
+
 process prep_bt2_index {
     label 'prep_bt2_index'
-    publishDir "${params.output}/host_genome_idx/", mode: 'copy'
+    tag "$genome_fasta"
+    publishDir "${params.output}/host_genome_idx", mode: 'copy'
     input:
-        val(fasta)
+        path(genome_fasta)
     output:
-        set val("bowtieIndex"), file("*") into bowtie_index
+        path ('*.bt2')
     script:
         """
-        bowtie2-build ${fasta} bowtie_index
+        bowtie2-build $genome_fasta ${genome_fasta.baseName}
         """
 }
 
@@ -15,6 +18,7 @@ process bowtie2 {
     label 'bowtie2'
     publishDir "${params.output}/${id}/host_mapping", mode: 'copy'
     input:
+        file 'bowtie_index'
         tuple val(id), path(illumina_clean)
     output:
         tuple val(id), path("*_R?_un-conc.fastq")
