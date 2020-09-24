@@ -18,8 +18,8 @@ process bowtie2 {
     label 'bowtie2'
     publishDir "${params.output}/${id}/host_mapping", mode: 'copy'
     input:
-        file 'bowtie_index'
         tuple val(id), path(illumina_clean)
+        path(bt2_index)
     output:
         tuple val(id), path("*_R?_un-conc.fastq")
         path("${id}_bt2.log")
