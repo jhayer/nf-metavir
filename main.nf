@@ -68,9 +68,9 @@ workflow {
 
     if (params.skip_host_map==false) {
         // do the host mapping
+        include {prep_bt2_index} from './modules/bowtie2' params(output: params.output)
         include {bowtie2} from './modules/bowtie2' params(output: params.output)
     }
-
 
 
     //*************************************************
@@ -86,6 +86,9 @@ workflow {
     fastp(illumina_input_ch)
     illumina_clean_ch = fastp.out
 
+    //*************************************************
+    // STEP 2 - Optional - Host mapping
+    //*************************************************
     if (params.skip_host_map==false){
             if(params.host_ref) {
                 fasta = file(params.host_ref)
@@ -96,9 +99,9 @@ workflow {
             }
 
             // The reference genome file
-            genome_file = file(params.host_ref)
-
-            bowtie2(illumina_clean_ch).join(genome_file)
+            //genome_file = file(params.host_ref)
+            prep_bt2_index(params.host_ref)
+            bowtie2(illumina_clean_ch)
             illumina_host_unmapped_ch = bowtie2.out
     }
 
