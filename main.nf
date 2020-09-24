@@ -84,7 +84,7 @@ workflow {
 
     // run fastp module
     fastp(illumina_input_ch)
-    illumina_clean_ch = fastp.out
+    illumina_clean_ch = fastp.out[0]
 
     //*************************************************
     // STEP 2 - Optional - Host mapping
@@ -104,7 +104,7 @@ workflow {
                     .set {genome}
             //genome_file.view()
             prep_bt2_index(genome)
-            bowtie2(illumina_clean_ch, prep_bt2_index.out.collect())
+            bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
             illumina_host_unmapped_ch = bowtie2.out
     }
 
