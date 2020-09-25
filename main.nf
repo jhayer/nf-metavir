@@ -38,10 +38,11 @@ def helpMSG() {
 
         Basic Parameter:
     --cpus                      max cores for local use [default: $params.cpus]
-    --memory                    80% of available RAM in GB for --metamaps [default: $params.memory]
+    --memory                    80% of available RAM in GB [default: $params.memory]
 
         Workflow Options:
-    --skip_host_map
+    --skip_host_map             if set, no host mapping.
+    --krona_chart               Produce Krona charts of taxonomic classification
 
         Nextflow options:
     -profile                    change the profile of nextflow both the engine and executor more details on github README
@@ -120,10 +121,15 @@ workflow {
     megahit(illumina_host_unmapped_ch)
     contigs_ch = megahit.out[0]
 
+    //*************************************************
+    // STEP 4A - taxonomic classification reads
+    //*************************************************
+    kraken2prot_reads(illumina_host_unmapped_ch)
+    
+    //*************************************************
+    // STEP 4B - taxonomic classification contigs
+    //*************************************************
 
 
-    //*************************************************
-    // STEP 4 - taxonomic classification reads
-    //*************************************************
 
 }
