@@ -72,7 +72,7 @@ workflow {
         include {bowtie2} from './modules/bowtie2' params(output: params.output)
     }
     // including megahit module if needed
-    if ($params.assembler=='megahit') {
+    if (params.assembler=='megahit') {
         include {megahit} from './modules/megahit' params(output: params.output)
     }
 
@@ -108,7 +108,7 @@ workflow {
             //genome_file.view()
             prep_bt2_index(genome)
             bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
-            illumina_host_unmapped_ch = bowtie2.out
+            illumina_host_unmapped_ch = bowtie2.out[0]
     }
     else {
         illumina_host_unmapped_ch = illumina_clean_ch
