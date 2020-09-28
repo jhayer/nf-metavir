@@ -22,7 +22,7 @@ def helpMSG() {
         Input:
     --illumina                  path to the directory containing the illumina read file (fastq) (default: $params.illumina)
         Optional input:
-    --host_ref                  path to the host reference genome to map on
+    --host_ref                  path to the host reference genome to map on [default: $params.host_ref]
     --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt) [default: $params.k2nt_db]
     --k2prot_db                 path to the Kraken2 protein database (e.g. nr) [default: $params.k2prot_db]
     --diamond_db                path to the Diamond protein database (e.g. nr)
@@ -30,8 +30,9 @@ def helpMSG() {
         Output:
     --output                    path to the output directory (default: $params.output)
 
-        Outputed files:
+        Outputed directories:
     qc                          The reads file after qc, qc logs and host mapping logs
+    assembly                    The megahit assembly output directory
     reads                       The taxonomic classifications at reads level
     contigs                     The taxonomic classifications at contigs level
 
@@ -40,7 +41,9 @@ def helpMSG() {
     --memory                    80% of available RAM in GB [default: $params.memory]
 
         Workflow Options:
-    --skip_host_map             if set, no host mapping.
+    --skip_host_map             if set, no host mapping.[default: $params.skip_host_map]
+    --diamond4megan             produce a diamond daa file for Megan (need to set diamond_db)[default: $params.diamond4megan]
+    --skip_diamond4pavian       skip the run of Diamond for Pavian output [default: $params.skip_diamond4pavian]
     --krona_chart               Produce Krona charts of taxonomic classification
 
         Nextflow options:
@@ -95,8 +98,24 @@ workflow {
     }
     // TODO: here add warnings if no K2 db selected
 
-    if (params.krona_chart) {
-        include {krona_chart} from './modules/krona.nf' params(output: params.output)
+    if (params.krona_chart_kraken) {
+        include {krona_chart_kraken} from './modules/krona.nf' params(output: params.output)
+    }
+
+    // including Diamond: ouputs for Pavian or Megan if needed
+    if (params.diamond_db) {
+        if (params.skip_diamond4pavian==false){
+            include {diamond_contigs} from './modules/diamond.nf' params(output: params.output)
+        }
+
+        if (param.diamond4megan==true) {
+            include {diamond4megan_contigs} from './modules/diamond.nf' params(output: params.output)
+        }
+    }
+    else {
+        if(param.diamond4megan==true){
+            exit 1, "You need to specify a Diamond database to use"
+        }
     }
 
     //*************************************************
@@ -167,6 +186,34 @@ workflow {
         kraken2nt_contigs(contigs_ch, db_k2nt)
     }
 
+    //*************************************************
+    // STEP 4C - taxonomic classification protein level
+    //           on reads and contigs - diamond
+    //*************************************************
+    if (params.diamond_db) {
+        db_diamond = file(params.diamond_db)
+        // on contigs only for now as Diamond does not support paired ends
+        if (params.skip_diamond4pavian==false){
+            // run diamond with output compatible for pavian
+            //need kraken and kraken db for kraken_report
+            kraken1_nt_db = file(params.krak1_nt_db)
+            diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db)
+        }
+        // run diamond with daa output compatible for Megan
+        if (param.diamond4megan==true) {
+            diamond4megan_contigs(contigs_ch, db_diamond)
+        }
+    }
+
+    //*************************************************
+    // STEP 4D - taxonomic classification protein level
+    //           on reads and contigs - Kaiju
+    //*************************************************
+
+
+    //*************************************************
+    // STEP 5 - taxonomic visualisation - KronaChart
+    //*************************************************
 
 
 }
