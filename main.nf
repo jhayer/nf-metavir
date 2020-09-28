@@ -79,6 +79,7 @@ workflow {
     // including Kraken2
     if (params.k2prot_db){
         include {kraken2prot_reads} from './modules/kraken2.nf' params(output: params.output)
+        include {kraken2prot_contigs} from './modules/kraken2.nf' params(output: params.output)
     }
 
     //*************************************************
@@ -131,6 +132,7 @@ workflow {
     if (params.k2prot_db){
         db_k2prot = file(params.k2prot_db)
         kraken2prot_reads(illumina_host_unmapped_ch, db_k2prot)
+        kraken2prot_contigs(contigs_ch, db_k2prot)
     }
 
     //*************************************************
