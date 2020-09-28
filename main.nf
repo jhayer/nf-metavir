@@ -24,7 +24,7 @@ def helpMSG() {
     --assembler                 the assembler to use in the assembly step (default: $params.assembler)
         Optional input:
     --host_ref                  path to the host reference genome to map on
-    --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt)
+    --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt) [default: $params.k2nt_db]
     --k2prot_db                 path to the Kraken2 protein database (e.g. nr) [default: $params.k2prot_db]
     --diamond_db                path to the Diamond protein database (e.g. nr)
 
@@ -65,6 +65,10 @@ workflow {
     else { exit 1, "No executer selected: -profile uppmax or -profile planet"}
 
 
+    //*************************************************
+    // STEP 0 - Include needed modules
+    //*************************************************
+
     include {fastp} from './modules/fastp' params(output: params.output)
     // including bowtie2 module if host mapping needed
     if (params.skip_host_map==false) {
@@ -76,10 +80,16 @@ workflow {
     if (params.assembler=='megahit') {
         include {megahit} from './modules/megahit' params(output: params.output)
     }
-    // including Kraken2
+    // including Kraken2 - protein level
     if (params.k2prot_db){
         include {kraken2prot_reads} from './modules/kraken2.nf' params(output: params.output)
         include {kraken2prot_contigs} from './modules/kraken2.nf' params(output: params.output)
+    }
+
+    // including Kraken2 - nucleotide level
+    if (params.k2nt_db) {
+        include {kraken2nt_reads} from './modules/kraken2.nf' params(output: params.output)
+        include {kraken2nt_contigs} from './modules/kraken2.nf' params(output: params.output)
     }
 
     //*************************************************
@@ -127,7 +137,8 @@ workflow {
     contigs_ch = megahit.out[0]
 
     //*************************************************
-    // STEP 4A - taxonomic classification reads
+    // STEP 4A - taxonomic classification prot level
+    //           on reads and contigs - Kraken2
     //*************************************************
     if (params.k2prot_db){
         db_k2prot = file(params.k2prot_db)
@@ -136,8 +147,14 @@ workflow {
     }
 
     //*************************************************
-    // STEP 4B - taxonomic classification contigs
+    // STEP 4B - taxonomic classification nucleotide
+    //           on reads and contigs - Kraken2
     //*************************************************
+    if (params.k2nt_db) {
+        db_k2nt = file(params.k2nt_db)
+        kraken2nt_reads(illumina_host_unmapped_ch, db_k2nt)
+        kraken2nt_contigs(contigs_ch, db_k2nt)
+    }
 
 
 
