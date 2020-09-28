@@ -64,4 +64,3 @@ process kraken2nt_contigs {
             --report ${id}_kn2_nt-report.txt ${contigs}
         """
 }
-}
