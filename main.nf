@@ -108,12 +108,12 @@ workflow {
             include {diamond_contigs} from './modules/diamond.nf' params(output: params.output)
         }
 
-        if (param.diamond4megan==true) {
+        if (params.diamond4megan==true) {
             include {diamond4megan_contigs} from './modules/diamond.nf' params(output: params.output)
         }
     }
     else {
-        if(param.diamond4megan==true){
+        if(params.diamond4megan==true){
             exit 1, "You need to specify a Diamond database to use"
         }
     }
@@ -200,7 +200,7 @@ workflow {
             diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db)
         }
         // run diamond with daa output compatible for Megan
-        if (param.diamond4megan==true) {
+        if (params.diamond4megan==true) {
             diamond4megan_contigs(contigs_ch, db_diamond)
         }
     }
