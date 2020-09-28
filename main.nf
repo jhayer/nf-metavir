@@ -44,7 +44,7 @@ def helpMSG() {
     --skip_host_map             if set, no host mapping.[default: $params.skip_host_map]
     --diamond4megan             produce a diamond daa file for Megan (need to set diamond_db)[default: $params.diamond4megan]
     --skip_diamond4pavian       skip the run of Diamond for Pavian output [default: $params.skip_diamond4pavian]
-    --krona_chart               Produce Krona charts of taxonomic classification
+    --krona_chart               Produce Krona charts of taxonomic classification [default: $params.krona_chart]
 
         Nextflow options:
     -profile                    change the profile of nextflow both the engine and executor more details on github README
@@ -138,19 +138,21 @@ workflow {
             if(params.host_ref) {
                 fasta = file(params.host_ref)
                 if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.host_ref}"
+
+                // The reference genome file
+                Channel.fromPath(params.host_ref, checkIfExists: true)
+                        .ifEmpty { exit 1, "Cannot find host genome matching ${params.host_ref}!\n" }
+                        .set {genome}
+                //prep genome index
+                prep_bt2_index(genome)
+                // mapping bowtie2
+                bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
+                illumina_host_unmapped_ch = bowtie2.out[0]
             }
             else {
-                exit 1, "No reference genome specified! A fasta file is required"
+                "Warning: No reference genome specified! Skipping host mapping"
+                illumina_host_unmapped_ch = illumina_clean_ch
             }
-
-            // The reference genome file
-            Channel.fromPath(params.host_ref, checkIfExists: true)
-                    .ifEmpty { exit 1, "Cannot find host genome matching ${params.host_ref}!\n" }
-                    .set {genome}
-            //genome_file.view()
-            prep_bt2_index(genome)
-            bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
-            illumina_host_unmapped_ch = bowtie2.out[0]
     }
     else {
         illumina_host_unmapped_ch = illumina_clean_ch
