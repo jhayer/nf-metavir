@@ -25,7 +25,7 @@ def helpMSG() {
         Optional input:
     --host_ref                  path to the host reference genome to map on
     --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt)
-    --k2prot_db                 path to the Kraken2 protein database (e.g. nr)
+    --k2prot_db                 path to the Kraken2 protein database (e.g. nr) [default: $params.k2prot_db]
     --diamond_db                path to the Diamond protein database (e.g. nr)
 
         Output:
@@ -76,6 +76,10 @@ workflow {
     if (params.assembler=='megahit') {
         include {megahit} from './modules/megahit' params(output: params.output)
     }
+    // including Kraken2
+    if (params.k2prot_db){
+        include {kraken2prot_reads} from './modules/kraken2.nf' params(output: params.output)
+    }
 
     //*************************************************
     // STEP 1 QC with fastp
@@ -124,8 +128,11 @@ workflow {
     //*************************************************
     // STEP 4A - taxonomic classification reads
     //*************************************************
-    kraken2prot_reads(illumina_host_unmapped_ch)
-    
+    if (params.k2prot_db){
+        db_k2prot = file(params.k2prot_db)
+        kraken2prot_reads(illumina_host_unmapped_ch, db_k2prot)
+    }
+
     //*************************************************
     // STEP 4B - taxonomic classification contigs
     //*************************************************
