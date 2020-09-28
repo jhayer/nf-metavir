@@ -16,12 +16,11 @@ def helpMSG() {
     ********* Assembly and taxonomic classification workflow for (viral) metagenomics *********
 
         Usage example:
-    nextflow run main.nf --illumina illumina/ --assembler megahit -profile planet
+    nextflow run main.nf --illumina illumina/ -profile planet --skip_host_map --k2prot_db k2nr_path
     or
-    nextflow run main.nf --illumina illumina/ --assembler megahit --host_map host_ref/ -profile uppmax
+    nextflow run main.nf --illumina illumina/ --host_map host_ref/ -profile uppmax
         Input:
     --illumina                  path to the directory containing the illumina read file (fastq) (default: $params.illumina)
-    --assembler                 the assembler to use in the assembly step (default: $params.assembler)
         Optional input:
     --host_ref                  path to the host reference genome to map on
     --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt) [default: $params.k2nt_db]
@@ -76,20 +75,28 @@ workflow {
         include {prep_bt2_index} from './modules/bowtie2' params(output: params.output)
         include {bowtie2} from './modules/bowtie2' params(output: params.output)
     }
-    // including megahit module if needed
-    if (params.assembler=='megahit') {
-        include {megahit} from './modules/megahit' params(output: params.output)
+    else {
+            if(params.host_ref) {
+                exit 1, "skip_host_map options and host_ref are incompatible"
+            }
     }
+    // including megahit module
+    include {megahit} from './modules/megahit' params(output: params.output)
+
     // including Kraken2 - protein level
     if (params.k2prot_db){
         include {kraken2prot_reads} from './modules/kraken2.nf' params(output: params.output)
         include {kraken2prot_contigs} from './modules/kraken2.nf' params(output: params.output)
     }
-
     // including Kraken2 - nucleotide level
     if (params.k2nt_db) {
         include {kraken2nt_reads} from './modules/kraken2.nf' params(output: params.output)
         include {kraken2nt_contigs} from './modules/kraken2.nf' params(output: params.output)
+    }
+    // TODO: here add warnings if no K2 db selected
+
+    if (params.krona_chart) {
+        include {krona_chart} from './modules/krona.nf' params(output: params.output)
     }
 
     //*************************************************
@@ -144,6 +151,10 @@ workflow {
         db_k2prot = file(params.k2prot_db)
         kraken2prot_reads(illumina_host_unmapped_ch, db_k2prot)
         kraken2prot_contigs(contigs_ch, db_k2prot)
+        if (params.krona_chart==true) {
+            k2res_reads_rep_ch = kraken2prot_reads.out[1]
+        //    krona_chart_kraken(k2res_reads_rep_ch)
+        }
     }
 
     //*************************************************

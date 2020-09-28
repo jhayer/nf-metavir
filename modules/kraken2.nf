@@ -5,7 +5,8 @@ process kraken2prot_reads {
         tuple val(id), path(illumina)
         path(db_k2prot)
     output:
-        path("*_kn2_nr-re*.txt")
+        path("${id}_kn2_nr-res.txt")
+        path("${id}_kn2_nr-report.txt")
     script:
         """
         kraken2 --db ${db_k2prot} --memory-mapping \
