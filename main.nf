@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+//nextflow.enable.dsl=2
+nextflow.preview.dsl=2
 
 start_var = Channel.from("""
 ********* Start running Metavir pipeline *********
@@ -124,7 +125,7 @@ workflow {
 
     // DATA INPUT ILLUMINA
     illumina_input_ch = Channel
-        .fromFilePairs( "${params.illumina}/*_R{1,2}_001.fastq{,.gz}", checkIfExists: true)
+        .fromFilePairs( "${params.illumina}/*_R{1,2}*.fastq{,.gz}", checkIfExists: true)
         .view()
 
     // run fastp module
