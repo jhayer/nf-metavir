@@ -15,7 +15,7 @@ process diamond_contigs{
         diamond blastx -d ${db_diamond} -q ${contigs} -o ${id}_dx_tax.tab -f 102 -p 8
 
         # adding the first column U/C to the tab file for kraken-report
-        awk -F'\t' '{if(\$2>0)\$1="C" FS \$1;else \$1="U" FS \$1;}1' OFS='\t' ${id}_dx_tax.tab > ${id}_dx_tax_UC.tab
+        awk -F'\\t' '{if(\$2>0)\$1="C" FS \$1;else \$1="U" FS \$1;}1' OFS='\\t' ${id}_dx_tax.tab > ${id}_dx_tax_UC.tab
 
         #the diamond output can now be converted into kraken report for pavian
         kraken-report --db ${kraken1_nt_db} ${id}_dx_tax_UC.tab > ${id}_dx_krak-report.txt
