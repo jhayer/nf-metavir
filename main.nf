@@ -34,8 +34,9 @@ def helpMSG() {
         Outputed directories:
     qc                          The reads file after qc, qc logs and host mapping logs
     assembly                    The megahit assembly output directory
-    reads                       The taxonomic classifications at reads level
-    contigs                     The taxonomic classifications at contigs level
+    taxonomic_classif
+        reads                       The taxonomic classifications at reads level
+        contigs                     The taxonomic classifications at contigs level
 
         Basic Parameter:
     --cpus                      max cores for local use [default: $params.cpus]
@@ -45,8 +46,7 @@ def helpMSG() {
     --skip_host_map             if set, no host mapping.[default: $params.skip_host_map]
     --diamond4megan             produce a diamond daa file for Megan (need to set diamond_db)[default: $params.diamond4megan]
     --skip_diamond4pavian       skip the run of Diamond for Pavian output [default: $params.skip_diamond4pavian]
-    --krona_chart               Produce Krona charts of taxonomic classification [default: $params.krona_chart]
-
+    
         Nextflow options:
     -profile                    change the profile of nextflow both the engine and executor more details on github README
     -resume                     resume the workflow where it stopped
