@@ -25,7 +25,7 @@ process bowtie2 {
         path("*_hostmap.log")
     script:
         
-        index_basename = bt2_index_files[0].toString() - ~/.\d.bt2?/
+        index_basename = bt2_index_files[0].toString() - ~/.rev.\d.bt2?/ - ~/.\d.bt2?/
         """
         bowtie2 -x ${index_basename} -1 ${illumina_clean[0]} -2 ${illumina_clean[1]} \
             -p 4 -S ${id}_hostmap_bt2.sam --un ${id}_hostmap_un.fastq \

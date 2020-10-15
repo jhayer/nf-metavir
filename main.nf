@@ -146,15 +146,16 @@ workflow {
                         .set {genome}
 
                 if (
-                "${fasta.baseName}.1.bt2" &&
-                "${fasta.baseName}.2.bt2" &&
-                "${fasta.baseName}.3.bt2" &&
-                "${fasta.baseName}.4.bt2" &&
-                "${fasta.baseName}.rev.1.bt2" &&
-                "${fasta.baseName}.rev.2.bt2"){
+                file("${fasta.baseName}.1.bt2").exists() &&
+                file("${fasta.baseName}.2.bt2").exists() &&
+                file("${fasta.baseName}.3.bt2").exists() &&
+                file("${fasta.baseName}.4.bt2").exists() &&
+                file("${fasta.baseName}.rev.1.bt2").exists() &&
+                file("${fasta.baseName}.rev.2.bt2").exists()
+                ){
                     index_files = Channel.fromPath("${fasta.baseName}*.bt2")
                 }
-                else{
+                else {
                     //prep genome index
                     prep_bt2_index(genome)
                     index_files = prep_bt2_index.out
