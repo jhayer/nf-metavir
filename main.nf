@@ -46,7 +46,7 @@ def helpMSG() {
     --skip_host_map             if set, no host mapping.[default: $params.skip_host_map]
     --diamond4megan             produce a diamond daa file for Megan (need to set diamond_db)[default: $params.diamond4megan]
     --skip_diamond4pavian       skip the run of Diamond for Pavian output [default: $params.skip_diamond4pavian]
-    
+
         Nextflow options:
     -profile                    change the profile of nextflow both the engine and executor more details on github README
     -resume                     resume the workflow where it stopped
@@ -144,10 +144,25 @@ workflow {
                 Channel.fromPath(params.host_ref, checkIfExists: true)
                         .ifEmpty { exit 1, "Cannot find host genome matching ${params.host_ref}!\n" }
                         .set {genome}
-                //prep genome index
-                prep_bt2_index(genome)
+
+                if (
+                file("${fasta.baseName}.1.bt2").exists() &&
+                file("${fasta.baseName}.2.bt2").exists() &&
+                file("${fasta.baseName}.3.bt2").exists() &&
+                file("${fasta.baseName}.4.bt2").exists() &&
+                file("${fasta.baseName}.rev.1.bt2").exists() &&
+                file("${fasta.baseName}.rev.2.bt2").exists()
+                ){
+                    index_files = Channel.fromPath("${fasta.baseName}*.bt2")
+                }
+                else {
+                    //prep genome index
+                    prep_bt2_index(genome)
+                    index_files = prep_bt2_index.out
+                    //bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
+                }
                 // mapping bowtie2
-                bowtie2(illumina_clean_ch,prep_bt2_index.out.collect())
+                bowtie2(illumina_clean_ch,index_files.collect())
                 illumina_host_unmapped_ch = bowtie2.out[0]
             }
             else {
