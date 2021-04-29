@@ -35,6 +35,7 @@ process kraken2prot_contigs {
 process kraken2nt_reads {
     label 'kraken2nt_reads'
     publishDir "${params.output}/${id}/taxonomic_classif/reads", mode: 'copy'
+
     input:
         tuple val(id), path(illumina)
         path(db_k2nt)
@@ -42,6 +43,11 @@ process kraken2nt_reads {
         path("*_kn2_nt-re*.txt")
     script:
         """
+        if [ ! -d latest_nt ];
+            then
+                mkdir latest_nt && cp /sw/data/Kraken2/latest_nt/*.k2d ./latest_nt/ || exit 1
+        fi
+
         kraken2 --db ${db_k2nt} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nt-res.txt \
             --report ${id}_kn2_nt-report.txt \
@@ -52,6 +58,7 @@ process kraken2nt_reads {
 process kraken2nt_contigs {
     label 'kraken2nt_contigs'
     publishDir "${params.output}/${id}/taxonomic_classif/contigs", mode: 'copy'
+
     input:
         tuple val(id), path(contigs)
         path(db_k2nt)
@@ -59,6 +66,11 @@ process kraken2nt_contigs {
         path("*_kn2_nt-re*.txt")
     script:
         """
+        if [ ! -d latest_nt ];
+            then
+                mkdir latest_nt && cp /sw/data/Kraken2/latest_nt/*.k2d ./latest_nt/ || exit 1
+        fi
+
         kraken2 --db ${db_k2nt} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nt-res.txt \
             --report ${id}_kn2_nt-report.txt ${contigs}
