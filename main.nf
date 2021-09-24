@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
-//nextflow.enable.dsl=2
-nextflow.preview.dsl=2
+nextflow.enable.dsl=2
 
 start_var = Channel.from("""
 ********* Start running Metavir pipeline *********
@@ -65,7 +64,7 @@ workflow {
     if (
         workflow.profile.contains('planet') ||
         workflow.profile.contains('uppmax') ||
-        workflow.profile.contains('itrop') ||
+        workflow.profile.contains('itrop')
     ) { "executer selected" }
     else { exit 1, "No executer selected: -profile uppmax or -profile planet or -profile itrop"}
 
