@@ -27,6 +27,7 @@ def helpMSG() {
     --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt) [default: $params.k2nt_db]
     --k2prot_db                 path to the Kraken2 protein database (e.g. nr) [default: $params.k2prot_db]
     --diamond_db                path to the Diamond protein database (e.g. nr)
+    --kraken1report             path to Kraken 1 program kraken-report [default: kraken-report]
 
         Output:
     --output                    path to the output directory (default: $params.output)
@@ -63,9 +64,10 @@ workflow {
     // error handling
     if (
         workflow.profile.contains('planet') ||
-        workflow.profile.contains('uppmax')
+        workflow.profile.contains('uppmax') ||
+        workflow.profile.contains('itrop') ||
     ) { "executer selected" }
-    else { exit 1, "No executer selected: -profile uppmax or -profile planet"}
+    else { exit 1, "No executer selected: -profile uppmax or -profile planet or -profile itrop"}
 
 
     //*************************************************
@@ -125,7 +127,7 @@ workflow {
 
     // DATA INPUT ILLUMINA
     illumina_input_ch = Channel
-        .fromFilePairs( "${params.illumina}/*_R{1,2}*.fastq{,.gz}", checkIfExists: true)
+        .fromFilePairs( "${params.illumina}/*_{1,2}*.fastq{,.gz}", checkIfExists: true)
         .view()
 
     // run fastp module
@@ -215,6 +217,7 @@ workflow {
             // run diamond with output compatible for pavian
             //need kraken and kraken db for kraken_report
             kraken1_nt_db = file(params.krak1_nt_db)
+            kraken_report = file(params.kraken1report)
             diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db)
         }
         // run diamond with daa output compatible for Megan

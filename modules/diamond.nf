@@ -5,6 +5,7 @@ process diamond_contigs{
         tuple val(id), path(contigs)
         path(db_diamond)
         path(kraken1_nt_db)
+        path(kraken_report)
     output:
         path("${id}_dx_tax.tab")
         path("${id}_dx_krak-report.txt")
@@ -18,7 +19,7 @@ process diamond_contigs{
         awk -F'\\t' '{if(\$2>0)\$1="C" FS \$1;else \$1="U" FS \$1;}1' OFS='\\t' ${id}_dx_tax.tab > ${id}_dx_tax_UC.tab
 
         #the diamond output can now be converted into kraken report for pavian
-        kraken-report --db ${kraken1_nt_db} ${id}_dx_tax_UC.tab > ${id}_dx_krak-report.txt
+        ${kraken_report} --db ${kraken1_nt_db} ${id}_dx_tax_UC.tab > ${id}_dx_krak-report.txt
         rm ${id}_dx_tax_UC.tab
         """
 }
