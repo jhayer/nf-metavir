@@ -126,7 +126,7 @@ workflow {
 
     // DATA INPUT ILLUMINA
     illumina_input_ch = Channel
-        .fromFilePairs( "${params.illumina}/*_{1,2}*.fastq{,.gz}", checkIfExists: true)
+        .fromFilePairs( "${params.illumina}/*_{1,2}.fastq{,.gz}", checkIfExists: true)
         .view()
 
     // run fastp module
@@ -217,7 +217,7 @@ workflow {
             //need kraken and kraken db for kraken_report
             kraken1_nt_db = file(params.krak1_nt_db)
             kraken_report = file(params.kraken1report)
-            diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db)
+            diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db, kraken_report)
         }
         // run diamond with daa output compatible for Megan
         if (params.diamond4megan==true) {
