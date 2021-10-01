@@ -185,8 +185,15 @@ workflow {
     //*************************************************
     // STEP 3 - Assembly
     //*************************************************
-    megahit(illumina_host_unmapped_ch)
-    contigs_ch = megahit.out[0]
+
+    if (params.assembler=="megahit"){
+      megahit(illumina_host_unmapped_ch)
+      contigs_ch = megahit.out[0]
+    }
+    else {
+      metaspades(illumina_host_unmapped_ch)
+      contigs_ch = metaspades.out[0]
+    }
 
     //*************************************************
     // STEP 4A - taxonomic classification prot level
