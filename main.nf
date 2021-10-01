@@ -22,6 +22,7 @@ def helpMSG() {
         Input:
     --illumina                  path to the directory containing the illumina read file (fastq) (default: $params.illumina)
         Optional input:
+    --assembler                 de novo assembler selected: megahit or metaspades [default: $params.assembler]
     --host_ref                  path to the host reference genome to map on [default: $params.host_ref]
     --k2nt_db                   path to the Kraken2 nucleotide database (e.g. nt) [default: $params.k2nt_db]
     --k2prot_db                 path to the Kraken2 protein database (e.g. nr) [default: $params.k2prot_db]
@@ -33,7 +34,7 @@ def helpMSG() {
 
         Outputed directories:
     qc                          The reads file after qc, qc logs and host mapping logs
-    assembly                    The megahit assembly output directory
+    assembly                    The megahit or metaspades assembly output directory
     taxonomic_classif
         reads                       The taxonomic classifications at reads level
         contigs                     The taxonomic classifications at contigs level
@@ -81,8 +82,18 @@ workflow {
                 exit 1, "skip_host_map options and host_ref are incompatible"
             }
     }
-    // including megahit module
-    include {megahit} from './modules/megahit' params(output: params.output)
+    // including assembler module
+    if (params.assembler=="megahit"){
+      include {megahit} from './modules/megahit' params(output: params.output)
+    }
+    else {
+        if (params.assembler=="metaspades"){
+          include {metaspades} from './modules/metaspades' params(output: params.output)
+        }
+        else {
+          exit 1, "no assembler selected, you need to choose from megahit or metaspades"
+        }
+    }
 
     // including Kraken2 - protein level
     if (params.k2prot_db){
