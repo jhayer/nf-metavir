@@ -53,20 +53,16 @@ def helpMSG() {
     """
 }
 
-if( !nextflow.version.matches('20.+') ) {
-    ch_ver=Channel.from("This workflow requires Nextflow version 20.07 or greater -- You are running version $nextflow.version").view()
-    exit 1
-}
-
 workflow {
 
     // error handling
     if (
         workflow.profile.contains('planet') ||
         workflow.profile.contains('uppmax') ||
-        workflow.profile.contains('itrop')
+        workflow.profile.contains('itrop') ||
+        workflow.profile.contains('local')
     ) { "executer selected" }
-    else { exit 1, "No executer selected: -profile uppmax or -profile planet or -profile itrop"}
+    else { exit 1, "No executer selected: -profile local/uppmax/planet/itrop"}
 
 
     //*************************************************
