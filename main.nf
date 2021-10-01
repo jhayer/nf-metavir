@@ -182,9 +182,8 @@ workflow {
     //           on reads and contigs - Kraken2
     //*************************************************
     if (params.k2prot_db){
-        db_k2prot = file(params.k2prot_db)
-        kraken2prot_reads(illumina_host_unmapped_ch, db_k2prot)
-        kraken2prot_contigs(contigs_ch, db_k2prot)
+        kraken2prot_reads(illumina_host_unmapped_ch, params.k2prot_db)
+        kraken2prot_contigs(contigs_ch, params.k2prot_db)
         if (params.krona_chart==true) {
             k2res_reads_rep_ch = kraken2prot_reads.out[1]
         //    krona_chart_kraken(k2res_reads_rep_ch)
@@ -196,9 +195,8 @@ workflow {
     //           on reads and contigs - Kraken2
     //*************************************************
     if (params.k2nt_db) {
-        db_k2nt = file(params.k2nt_db)
-        kraken2nt_reads(illumina_host_unmapped_ch, db_k2nt)
-        kraken2nt_contigs(contigs_ch, db_k2nt)
+        kraken2nt_reads(illumina_host_unmapped_ch, params.k2nt_db)
+        kraken2nt_contigs(contigs_ch, params.k2nt_db)
     }
 
     //*************************************************
@@ -206,18 +204,15 @@ workflow {
     //           on reads and contigs - diamond
     //*************************************************
     if (params.diamond_db) {
-        db_diamond = file(params.diamond_db)
         // on contigs only for now as Diamond does not support paired ends
         if (params.skip_diamond4pavian==false){
             // run diamond with output compatible for pavian
             //need kraken and kraken db for kraken_report
-            kraken1_nt_db = file(params.krak1_nt_db)
-            kraken_report = file(params.kraken1report)
-            diamond_contigs(contigs_ch, db_diamond, kraken1_nt_db, kraken_report)
+            diamond_contigs(contigs_ch, params.diamond_db, params.krak1_nt_db, params.kraken1report)
         }
         // run diamond with daa output compatible for Megan
         if (params.diamond4megan==true) {
-            diamond4megan_contigs(contigs_ch, db_diamond)
+            diamond4megan_contigs(contigs_ch, params.diamond_db)
         }
     }
 
