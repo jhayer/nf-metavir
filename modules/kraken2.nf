@@ -11,6 +11,7 @@ process kraken2prot_reads {
         """
         kraken2 --db ${db_k2prot} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nr-res.txt \
+            --report-minimizer-data \
             --report ${id}_kn2_nr-report.txt \
             --paired ${illumina[0]} ${illumina[1]}
         """
@@ -28,6 +29,7 @@ process kraken2prot_contigs {
         """
         kraken2 --db ${db_k2prot} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nr-res.txt \
+            --report-minimizer-data \
             --report ${id}_kn2_nr-report.txt ${contigs}
         """
 }
@@ -43,13 +45,9 @@ process kraken2nt_reads {
         path("*_kn2_nt-re*.txt")
     script:
         """
-        if [ ! -d latest_nt ];
-            then
-                mkdir latest_nt && cp /sw/data/Kraken2/latest_nt/*.k2d ./latest_nt/ || exit 1
-        fi
-
         kraken2 --db ${db_k2nt} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nt-res.txt \
+            --report-minimizer-data \
             --report ${id}_kn2_nt-report.txt \
             --paired ${illumina[0]} ${illumina[1]}
         """
@@ -66,13 +64,9 @@ process kraken2nt_contigs {
         path("*_kn2_nt-re*.txt")
     script:
         """
-        if [ ! -d latest_nt ];
-            then
-                mkdir latest_nt && cp /sw/data/Kraken2/latest_nt/*.k2d ./latest_nt/ || exit 1
-        fi
-
         kraken2 --db ${db_k2nt} --memory-mapping \
             --threads ${task.cpus} --output ${id}_kn2_nt-res.txt \
+            --report-minimizer-data \
             --report ${id}_kn2_nt-report.txt ${contigs}
         """
 }
